@@ -2,7 +2,8 @@
 .SYNOPSIS
   Powershell Hangman game that uses Wheel of Fortune clues. 
 .DESCRIPTION
-  Uses puzzles downloaded from https://wheeloffortuneanswer.com/ and saved to a CSV.
+  Uses puzzles downloaded from https://wheeloffortuneanswer.com/ and saved to a CSV located here: https://github.com/smithcbp/Powershell-Hangman/blob/main/puzzles.csv.
+  Must have the script and puzzles.csv in the same folder.
   Created by Chris Smith (smithcbp on github)
 #>
 $title = '
@@ -60,15 +61,15 @@ While ($playagain -like 'y') {
     While (($MainBoard -like "*$ph*") -and ($incorrectcount -lt 6)) {
         Clear-Host
         ##Track right/wrong guesses
-        if (!($puzzlearray -contains $letterguess )) { $wrongletterarray += $letterguess }
+        if (!($puzzlearray -contains $letterguess )) { $incorrectcount++ ; $wrongletterarray += $letterguess }
         if ($puzzlearray -contains $letterguess ) { $correctletterarray += $letterguess }
         ##Draw title and gameboard
         Write-Host -ForegroundColor Blue $title
         Write-Host ""
         Write-Host -ForegroundColor Cyan "Category: $($puzzle.category)"
-        Show-Hangman $wrongletterarray.count
+        Show-Hangman $incorrectcount
         ##Break if 6 incorrect answers. You lose
-        if ($($wrongletterarray.count) -eq 6) { break }
+        if ($incorrectcount -eq 6) { break }
         ##Create then display Main Letter Game Board
         $MainBoard = foreach ($character in $puzzlearray) {
             if ($guessedletterarray -match "$character") { $character = $character }
@@ -96,11 +97,3 @@ While ($playagain -like 'y') {
     ##Ask to play again
     $playagain = Read-Host "Would you like to play again?(y/n)"
 }
-
-
-    
-    
-
-
-
-
