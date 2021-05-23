@@ -1,0 +1,105 @@
+﻿<#
+.SYNOPSIS
+  Powershell Hangman game that uses Wheel of Fortune clues. 
+.DESCRIPTION
+  Uses puzzles downloaded from https://wheeloffortuneanswer.com/ and saved to a CSV.
+  Created by Chris Smith (smithcbp on github)
+#>
+$title = '
+    __  __                                      
+   / / / /___ _____  ____ _____ ___  ____ _____ 
+  / /_/ / __ `/ __ \/ __ `/ __ `__ \/ __ `/ __ \
+ / __  / /_/ / / / / /_/ / / / / / / /_/ / / / /
+/_/ /_/\__,_/_/ /_/\__, /_/ /_/ /_/\__,_/_/ /_/ 
+                  /____/                        '
+#Puzzlepath
+$puzzlepath = "$PSScriptRoot\puzzles.csv"
+$puzzles = Import-Csv $puzzlepath
+#Placeholder
+$ph = '▬'
+
+##Hangman drawing function
+Function Show-Hangman {
+    param ($numberofturns)
+    1..6 | ForEach-Object { Set-Variable -Name "t$_" -Value ' ' -Force -Scope script }
+    if ($numberofturns -ge 1) { $t1 = 'O' }
+    if ($numberofturns -ge 2) { $t2 = '|' }
+    if ($numberofturns -ge 3) { $t3 = '/' }
+    if ($numberofturns -ge 4) { $t4 = '\' }
+    if ($numberofturns -ge 5) { $t5 = '/' }
+    if ($numberofturns -ge 6) { $t6 = '\' } 
+    Write-Host "
+  +------+
+     |    |
+     $t1    |
+    $t3$t2$t4   |
+    $t5 $t6   |
+          |
+          |
+  ==========
+"
+}
+
+##Start Play Again loop
+$playagain = 'y'
+While ($playagain -like 'y') {
+    $puzzle = $puzzles | get-random -Count 1
+    $puzzlearray = $puzzle.puzzle.ToCharArray()
+    
+    #Initialize up some variables
+    $AZ = [char[]](65..90)
+    $letterguess = $null
+    $MainBoard = "$ph"
+    $incorrectcount = -1
+    $guessedletterarray = @()
+    $wrongletterarray = @()
+    $correctletterarray = @()
+    
+    ##Start Game Loop
+    While (($MainBoard -like "*$ph*") -and ($incorrectcount -lt 6)) {
+        Clear-Host
+        ##Track right/wrong guesses
+        if (!($puzzlearray -contains $letterguess )) { $wrongletterarray += $letterguess }
+        if ($puzzlearray -contains $letterguess ) { $correctletterarray += $letterguess }
+        ##Draw title and gameboard
+        Write-Host -ForegroundColor Blue $title
+        Write-Host ""
+        Write-Host -ForegroundColor Cyan "Category: $($puzzle.category)"
+        Show-Hangman $wrongletterarray.count
+        ##Break if 6 incorrect answers. You lose
+        if ($($wrongletterarray.count) -eq 6) { break }
+        ##Create then display Main Letter Game Board
+        $MainBoard = foreach ($character in $puzzlearray) {
+            if ($guessedletterarray -match "$character") { $character = $character }
+            elseif ($AZ -match $character) { $character = "$ph" }
+            $character
+        }
+        $MainBoard -join ''
+        ##Display Guessed Letters
+        Write-Host ''
+        Write-Host -ForegroundColor Gray "Correct Guesses: $($correctletterarray -join'')"
+        Write-Host -ForegroundColor Gray "Incorrect Guesses: $($wrongletterarray -join'')"
+        ##If there are still $ph in the game board, guess a letter. Loop if already guessed.
+        if ($MainBoard -like "*$ph*") {
+            $letterguess = Read-Host "Guess a letter"
+            while ($guessedletterarray -match $letterguess) { $letterguess = Read-Host "Guess a letter" }
+            $guessedletterarray += $letterguess
+        }
+    }
+    ##Loser/Winner endings
+    if ($incorrectcount -eq 6) {
+        Write-Host -ForegroundColor Green "$($puzzle.puzzle)"
+        Write-Host -ForegroundColor Red "You Lose!"
+    }
+    if (!($MainBoard -like "*$ph*")) { Write-Host -ForegroundColor Yellow "Winner! The man will live!!!" }
+    ##Ask to play again
+    $playagain = Read-Host "Would you like to play again?(y/n)"
+}
+
+
+    
+    
+
+
+
+
