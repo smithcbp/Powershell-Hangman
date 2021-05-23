@@ -14,6 +14,7 @@ $title = '
                   /____/                        '
 #Puzzlepath
 $puzzlepath = "$PSScriptRoot\puzzles.csv"
+if (!(Test-Path $puzzlepath)){Write-Error "puzzles.csv can't be found. Please download from https://github.com/smithcbp/Powershell-Hangman/blob/main/puzzles.csv and place in script folder." ; break}
 $puzzles = Import-Csv $puzzlepath
 #Placeholder
 $ph = '▬'
