@@ -84,6 +84,7 @@ While ($playagain -like 'y') {
         ##If there are still $ph in the game board, guess a letter. Loop if already guessed.
         if ($MainBoard -like "*$ph*") {
             $letterguess = Read-Host "Guess a letter"
+            $letterguess = $letterguess.ToCharArray() | select -First 1
             while ($guessedletterarray -match $letterguess) { $letterguess = Read-Host "Guess a letter" }
             $guessedletterarray += $letterguess
         }
